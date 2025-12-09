@@ -245,16 +245,83 @@ deploy_prod:
 
 -----
 
-# 🔜 NEXT TOPIC: Multi-Language Pipelines
 
-*(Java + Python + React + .NET)*
 
-**Please choose your approach for Topic 3:**
+# **📘 MULTI-LANGUAGE PIPELINE INTERVIEW CHEAT SHEET**
 
-1.  **Principles First:** Theory on Docker images, caching, artifacts, and patterns.
-2.  **Practical:** Jump straight into writing real example pipelines.
-3.  **Q\&A Mode:** Start directly with interview questions.
+### **1. Each language has its own Docker image**
 
------
+* Java → Maven/Gradle
+* Python → python:3.x
+* React → node:18
+* .NET → dotnet SDK
 
-**How would you like to proceed?**
+Reason: Different compilers, dependency managers, runtimes.
+
+---
+
+### **2. Each language has its own cache path**
+
+* Maven → `.m2/repository`
+* Python → `.cache/pip`
+* React → `node_modules/`
+* .NET → `.nuget/packages`
+
+Reason: Prevent cross-language corruption.
+
+---
+
+### **3. Each language produces different artifacts**
+
+* Java → JAR
+* Python → wheel (`.whl`)
+* React → build folder
+* .NET → publish output
+
+Artifacts must be passed to test/deploy jobs.
+
+---
+
+### **4. Selective execution using `rules: changes:`**
+
+Example:
+
+```yaml
+rules:
+  - changes:
+      - java-service/**/*
+```
+
+Prevents unnecessary builds → critical for monorepos.
+
+---
+
+### **5. Shared library logic**
+
+Use:
+
+* a separate build job for the shared library
+* `rules: changes:` on shared_lib/**/*
+* `needs:` from dependent services → ensures dependent rebuilds when library changes
+
+---
+
+### **6. Deploy only when Java changes**
+
+Use:
+
+```yaml
+rules:
+  - changes:
+      - java-service/**/*
+```
+
+NEVER `needs:` for conditional execution.
+
+---
+
+### **7. Parallel builds**
+
+All four languages can build in parallel in the `build` stage.
+
+---
