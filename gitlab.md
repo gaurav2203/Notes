@@ -150,10 +150,111 @@ deploy:
 
 > "Runners pull jobs from GitLab, execute them according to **stages** or **needs** relationships, pass **artifacts** through **dependencies** or **needs**, and enforce conditional logic through **rules**."
 
-*This sentence alone gets you respect.*
 
 -----
 
+
+
+# INTERVIEW CORRECTION: Rolling vs. Canary Updates
+
+### ❌ Why the "Rolling Update" Answer Failed
+
+  * **Late Detection:** Rolling updates replace pods gradually, meaning half the cluster runs the broken version before humans usually notice.
+  * **No Isolation:** Rolling does not provide a "safe slice" of traffic for testing.
+  * **Missing Metrics:** Senior answers must mention automated monitoring (KPIs/logs), not user testing.
+
+### ✅ MODEL ANSWER (Interview Ready)
+
+> “Rolling deployments replace pods gradually, so the failure wasn’t detected until half the cluster was already on the new version. Rolling provides no early-warning mechanism or traffic segmentation.
+>
+> Going forward, we should use a **Canary deployment**, which sends a small % of real production traffic to the new version and blocks further rollout if error rate, latency, or logs regress. This gives us early detection and near-instant rollback without impacting the majority of users.”
+
 -----
 
-**Would you like me to convert the next section for you once you decide on an option?**
+# 🚀 TOPIC 2: GitLab Environments & Deployment Strategies
+
+## 🔵 1. GitLab Environments
+
+**Definition:** A named deployment target (dev/stage/prod) tracked by GitLab with history, rollbacks, URLs, and protection rules.
+
+### Why define `environment:` in a job?
+
+  * Tracks exactly which commit was deployed.
+  * Enables one-click rollbacks.
+  * Displays the environment URL in the UI.
+  * Enforces protection rules (who can deploy).
+  * Logically separates dev, test, stage, and prod.
+
+### Environment Types
+
+  * **Static:** Standard long-lived environments (e.g., `dev`, `staging`, `production`).
+  * **Dynamic:** Ephemeral environments for testing branches (e.g., Review Apps).
+      * Path: `review/$CI_COMMIT_REF_NAME`
+
+### Manual Deployments
+
+Used for production gates.
+
+```yaml
+deploy_prod:
+  when: manual
+  environment: production
+```
+
+**Use Cases:**
+
+1.  Preventing accidental production releases.
+2.  Change management / Approval gates.
+3.  Enterprise compliance requirements.
+
+-----
+
+## 🔵 2. Deployment Strategies
+
+### A. Rolling Deployment (Default)
+
+  * **Mechanism:** Gradually replaces old pods with new pods.
+  * **Pros:** No downtime, Simple, Cheap (low resource overhead).
+  * **Cons:** Slow rollback, detection often happens too late.
+  * **Use For:** SaaS, internal tools, low-risk systems.
+
+### B. Blue/Green Deployment
+
+  * **Mechanism:** Maintains two identical environments. Traffic switches instantly from Blue (current) to Green (new).
+  * **Pros:** Zero downtime, Instant rollback.
+  * **Cons:** Double the infrastructure cost.
+  * **Use For:** Critical systems needing instant rollback capabilities.
+
+### C. Canary Deployment
+
+  * **Mechanism:** Releases new version to a small subset of users (1–5%) while monitoring metrics.
+  * **Pros:** Safest strategy, real production metric validation, early failure detection.
+  * **Cons:** Complex routing/Load Balancer rules required.
+  * **Use For:** Banking, Fintech, Regulated systems, High-risk changes.
+
+-----
+
+## 🔵 3. Strategy Selection Matrix
+
+| Use Case | Strategy | Why? |
+| :--- | :--- | :--- |
+| **Banking API / High-risk** | **Canary** | Detect problems early with real traffic. |
+| **SaaS / Fast deployments** | **Rolling** | Fast execution + minimal cost. |
+| **Internal Tools** | **Rolling** | Minimal configuration overhead. |
+| **Need Instant Rollback** | **Blue/Green** | Traffic switch is immediate; old env remains. |
+
+-----
+
+# 🔜 NEXT TOPIC: Multi-Language Pipelines
+
+*(Java + Python + React + .NET)*
+
+**Please choose your approach for Topic 3:**
+
+1.  **Principles First:** Theory on Docker images, caching, artifacts, and patterns.
+2.  **Practical:** Jump straight into writing real example pipelines.
+3.  **Q\&A Mode:** Start directly with interview questions.
+
+-----
+
+**How would you like to proceed?**
