@@ -325,3 +325,120 @@ NEVER `needs:` for conditional execution.
 All four languages can build in parallel in the `build` stage.
 
 ---
+
+
+
+# ⭐ **TOPIC 4 — FULL INTERVIEW CHEAT SHEET (GitLab Variables, Secrets & CI Security)**
+
+This is the exact sheet senior DevOps engineers would prepare for interviews.
+
+---
+
+# 🔵 **1. Variable Types (What They Do)**
+
+### **Regular Variables**
+
+* General configuration
+* Visible in logs unless masked
+
+### **Masked Variables**
+
+* Hidden in logs (`***`)
+* Cannot appear in artifacts
+* Must match strict regex
+* Protects *visibility*, not *access*
+
+### **Protected Variables**
+
+* Only available to pipelines on **protected branches/tags**
+* Prevents leaks through MR pipelines or forks
+* Protects *access*, not *visibility*
+
+### **Environment-Scoped Variables**
+
+* Different values per environment (dev/stage/prod)
+* GitLab automatically selects correct value
+
+### **File Variables**
+
+* Used for certs, kubeconfigs, JSON keys
+* Available as temporary files during the job
+
+---
+
+# 🔵 **2. Security Rules You MUST Know**
+
+### **Masked != secure storage**
+
+Secrets remain in plain text in job environment.
+
+### **Protected = access control**
+
+Secrets never reach untrusted branches or fork pipelines.
+
+### **Mask + Protect together for production**
+
+* Mask → hide in logs
+* Protect → restrict access
+
+### **NEVER store secrets in:**
+
+* `.gitlab-ci.yml`
+* commit history
+* Dockerfiles
+* environment files in repo
+
+### **GitLab prevents leaking by:**
+
+* hiding masked vars in logs
+* blocking protected vars in untrusted pipelines
+* rejecting masked vars that don’t match regex
+* stripping secrets from artifacts
+
+---
+
+# 🔵 **3. Attack Scenarios You Must Mention**
+
+* A malicious MR could echo secrets, send them over HTTP, write them to artifacts
+* Masking does NOT prevent exfiltration
+* Protected variables prevent this attack by blocking secret access entirely
+
+---
+
+# 🔵 **4. Deployment Patterns (Security Focus)**
+
+### **Safe Production Deployment**
+
+```yaml
+deploy_prod:
+  stage: deploy
+  when: manual
+  environment: production
+  only:
+    - main
+```
+
+Production secrets:
+
+* masked
+* protected
+* environment-specific
+
+---
+
+# 🔵 **5. Interview One-Liners (Use These)**
+
+### **Masked vs Protected**
+
+> “Masked hides the value in logs. Protected restricts access to trusted branches.
+> Masking protects visibility; protecting controls access.”
+
+### **Why prod secrets must be masked + protected**
+
+> “Masked so they never appear in logs, protected so only pipelines on `main` can use them.”
+
+### **Why masked secrets are still vulnerable**
+
+> “Masking hides secrets in logs but not in the environment; malicious code can still exfiltrate them.”
+
+---
